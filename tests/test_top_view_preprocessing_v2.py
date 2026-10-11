@@ -47,7 +47,9 @@ class GeometryTests(unittest.TestCase):
         self.assertFalse(good[2]);self.assertTrue(valid[2])
 
     def test_video_advances_and_bad_pose_does_not_drop_frame(self):
-        with tempfile.TemporaryDirectory(dir=Path(__file__).resolve().parent) as tmp:
+        # Use the OS temp directory: the checkout may be read-only or protected
+        # by Windows folder access controls (especially under Documents).
+        with tempfile.TemporaryDirectory(prefix='vibrissa_test_') as tmp:
             root=Path(tmp);video=root/'source.avi';dlc=root/'source.csv'
             writer=cv2.VideoWriter(str(video),cv2.VideoWriter_fourcc(*'FFV1'),40.,(160,120))
             self.assertTrue(writer.isOpened())
