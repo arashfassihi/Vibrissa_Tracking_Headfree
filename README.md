@@ -4,6 +4,29 @@ Head-stabilized whisker tracking and touch analysis, based on William's
 [DeepWhiskerCuts](https://github.com/madwilliam/DeepWhiskerCuts), with updated
 video preprocessing and invertible coordinate mapping.
 
+## First: run head tracking with DeepLabCut
+
+The original head analysis/filtering step is available as an independent entry
+point. Activate your existing working DeepLabCut environment first; NumPy and
+OpenCV alone do not provide DLC or the trained model weights.
+
+```powershell
+python run_head_tracking.py --config "path\Topview3435-Arash-2021-07-28\config.yaml" --video "path\2video.mp4" --shuffle 3
+```
+
+Replace the paths and verify the shuffle number. The original repository settings
+specify shuffle 1, whereas the previously inspected session-15 CSV filenames use
+shuffle 3. Use the intended trained head model, rather than assuming either is
+correct for every computer. Model files and weights must be accessible there.
+For a full session replace `--video ...` with `--session-dir "path\session"`;
+this selects original `*video.mp4` files only. Outputs follow DLC's usual naming
+and destination behavior. Use the generated `*_filtered.csv` for preprocessing.
+
+This command reuses the original `analyze_videos` then `filterpredictions` calls,
+without importing the legacy pipeline's side-model settings or running splitting.
+Automated tests mock DLC to check dispatch; actual inference requires validation
+in the computation computer's DLC environment.
+
 ## Updated top-view preprocessing
 
 The new command generates head-stabilized left/right videos and saves the exact
