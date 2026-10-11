@@ -62,13 +62,15 @@ def resolve_ffmpeg(binary=None):
 
 def write_h264(images, first, path, fps, binary, crf, preset):
     height, width = first.shape[:2]
-    if width % 2 or height % 2:
-        raise ValueError('H.264 yuv420p requires even image dimensions; no resizing is applied')
+    # 4:2:0 subsampling requires even dimensions. 4:4:4 preserves odd-sized
+    # acquisition frames exactly in geometry, avoiding padding/cropping/resizing.
+    pixel_format = 'yuv444p' if width % 2 or height % 2 else 'yuv420p'
+    print(f'H.264: {width}x{height}, {pixel_format}', flush=True)
     command = [binary, '-hide_banner', '-loglevel', 'error', '-nostdin', '-n',
                '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s:v', f'{width}x{height}',
                '-r', str(fps), '-i', 'pipe:0', '-an', '-c:v', 'libx264',
                '-preset', preset, '-crf', str(crf), '-threads', '2',
-               '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(path)]
+               '-pix_fmt', pixel_format, '-movflags', '+faststart', str(path)]
     # A file for stderr avoids deadlocks if FFmpeg reports more than a pipe buffer.
     with tempfile.TemporaryFile() as errors:
         process = subprocess.Popen(command, stdin=subprocess.PIPE, stderr=errors,

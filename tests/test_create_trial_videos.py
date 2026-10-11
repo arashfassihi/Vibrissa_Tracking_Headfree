@@ -61,6 +61,27 @@ class TrialVideoTests(unittest.TestCase):
                 create_trial_video(root / '2', 40., output_format='mp4', skip_existing=True)
 
     @unittest.skipUnless(os.environ.get('VIBRISSA_TEST_FFMPEG'), 'Set VIBRISSA_TEST_FFMPEG for H.264 integration')
+    def test_h264_odd_dimensions_are_preserved(self):
+        for height, width in ((65, 80), (64, 81), (65, 81)):
+            with self.subTest(height=height, width=width), tempfile.TemporaryDirectory() as tmp:
+                trial = Path(tmp) / '0'
+                trial.mkdir()
+                for n in range(2):
+                    frame = np.full((height, width, 3), 80 + n * 50, np.uint8)
+                    cv2.imwrite(str(trial / f'{n}.png'), frame)
+                video = create_trial_video(trial, 40., output_format='mp4', encoder='h264',
+                                           ffmpeg=os.environ['VIBRISSA_TEST_FFMPEG'])
+                capture = cv2.VideoCapture(str(video))
+                try:
+                    for n in range(2):
+                        ok, frame = capture.read()
+                        self.assertTrue(ok)
+                        self.assertEqual(frame.shape, (height, width, 3))
+                    self.assertFalse(capture.read()[0])
+                finally:
+                    capture.release()
+
+    @unittest.skipUnless(os.environ.get('VIBRISSA_TEST_FFMPEG'), 'Set VIBRISSA_TEST_FFMPEG for H.264 integration')
     def test_real_h264_preserves_frames_and_dimensions(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

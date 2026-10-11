@@ -25,7 +25,10 @@ python run_create_trial_videos.py --session-dir "path\session" --fps 40 --encode
 FFmpeg with `libx264` must be on PATH, or pass `--ffmpeg "C:\ffmpeg\bin\ffmpeg.exe"`.
 The mp4v option needs only OpenCV; H.264 offers explicit quality control. Both
 keep all frames at the original resolution and requested frame rate. H.264 uses
-yuv420p and requires even image dimensions. CRF 18 is a starting point for good
+yuv420p for even dimensions and yuv444p when either dimension is odd, preserving
+the exact image size without padding, cropping, or resizing. Some Windows players
+may not play 4:4:4 H.264; the command validates decoding through OpenCV, as used
+by the tracking pipeline. CRF 18 is a starting point for good
 quality; lower values such as 15 preserve more detail at the cost of larger files.
 Inspect fine whisker detail before adopting lossy compression for analysis.
 The original images remain unchanged. `veryfast` controls encoding speed and
