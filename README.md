@@ -1,4 +1,8 @@
-# DeepWhiskerCuts
+# Vibrissa Tracking Headfree
+
+Head-stabilized whisker tracking and touch analysis, based on William's
+[DeepWhiskerCuts](https://github.com/madwilliam/DeepWhiskerCuts), with updated
+video preprocessing and invertible coordinate mapping.
 
 ## Updated top-view preprocessing
 
@@ -74,14 +78,19 @@ actual historical preprocessing and inverse-transform script.
 
 ### Update a computation computer
 
-Once the branch has been published, in a clean clone of this repository:
+After publication, clone this repository on a computation computer:
 
 ```powershell
-git fetch origin
-git switch --track origin/codex/invertible-whisker-preprocessing
+git clone https://github.com/arashfassihi/Vibrissa_Tracking_Headfree.git
+cd Vibrissa_Tracking_Headfree
+```
+
+For later updates from inside that folder:
+
+```powershell
 git pull --ff-only
 ```
 
-If already on that branch, just run `git pull --ff-only`. Check `git status`
-before switching and preserve any local configuration or work. A later merge to
-`main` allows computers using `main` to obtain this command with their usual pull.
+Check `git status` and preserve any local configuration or work before updating.
+Select the Python environment available on each computer; local VS Code settings
+and validation videos are excluded from new commits.
