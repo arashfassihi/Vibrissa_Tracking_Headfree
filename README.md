@@ -52,6 +52,19 @@ pass, including for skipped videos.
 To run the optional real-H.264 integration test, set `VIBRISSA_TEST_FFMPEG` to your
 FFmpeg executable before running the test suite.
 
+## Browse frame previews
+
+```powershell
+python run_video_previews.py --video-dir "path\session\training_videos_h264" --frame 400
+```
+
+This saves a JPEG per MP4 into `previews_frame400`, with the filename and frame
+number underneath the image. `--frame` is one-based: 400 means video index 399.
+Videos with fewer frames are reported and skipped. Videos are never modified,
+and existing preview JPEGs are not overwritten. Browse the JPEG folder using
+Explorer's large icons; labels make it possible to select the corresponding
+video for DLC. Images are decoded sequentially up to the requested frame.
+
 ## Next: run head tracking with DeepLabCut
 
 The original head analysis/filtering step is available as an independent entry
