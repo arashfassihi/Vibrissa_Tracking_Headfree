@@ -4,7 +4,25 @@ Head-stabilized whisker tracking and touch analysis, based on William's
 [DeepWhiskerCuts](https://github.com/madwilliam/DeepWhiskerCuts), with updated
 video preprocessing and invertible coordinate mapping.
 
-## First: run head tracking with DeepLabCut
+## First: create videos if the session contains only trial images
+
+For numbered trial folders containing numerically named PNG/BMP/JPEG/TIFF images:
+
+```powershell
+python run_create_trial_videos.py --session-dir "path\session" --fps 40 --trial 0
+```
+
+This creates `0.avi` (lossless FFV1) and `0video.mp4` (mp4v) next to folder `0`,
+using numeric image order. Set `--fps` to the actual acquisition rate; 40 matches
+the legacy code. Remove `--trial 0` to create all numbered trials in numeric order,
+in a session with no existing trial videos. Existing videos are never overwritten.
+The command rejects missing/duplicate image numbers and inconsistent image sizes,
+then verifies both output videos by decoding all frames. If conversion fails,
+inspect any partial outputs before retrying; they are not automatically removed.
+Non-image files and nonnumeric subfolders are ignored. MP4 conversion now waits
+for completion and does not depend on the old local ffmpeg-path setting.
+
+## Next: run head tracking with DeepLabCut
 
 The original head analysis/filtering step is available as an independent entry
 point. Activate your existing working DeepLabCut environment first; NumPy and
