@@ -12,15 +12,42 @@ For numbered trial folders containing numerically named PNG/BMP/JPEG/TIFF images
 python run_create_trial_videos.py --session-dir "path\session" --fps 40 --trial 0
 ```
 
-This creates `0.avi` (lossless FFV1) and `0video.mp4` (mp4v) next to folder `0`,
-using numeric image order. Set `--fps` to the actual acquisition rate; 40 matches
-the legacy code. Remove `--trial 0` to create all numbered trials in numeric order,
-in a session with no existing trial videos. Existing videos are never overwritten.
-The command rejects missing/duplicate image numbers and inconsistent image sizes,
-then verifies both output videos by decoding all frames. If conversion fails,
-inspect any partial outputs before retrying; they are not automatically removed.
-Non-image files and nonnumeric subfolders are ignored. MP4 conversion now waits
-for completion and does not depend on the old local ffmpeg-path setting.
+The default now creates only `0video.mp4` (mp4v) next to folder `0`, using numeric
+image order. Add `--format both` to also create a lossless FFV1 AVI. Set `--fps`
+to the acquisition rate; 40 matches the legacy code. Omit `--trial` for all trials.
+
+For compact, high-quality H.264 videos of the whole session:
+
+```powershell
+python run_create_trial_videos.py --session-dir "path\session" --fps 40 --encoder h264 --crf 18 --preset veryfast --workers 2 --skip-existing
+```
+
+FFmpeg with `libx264` must be on PATH, or pass `--ffmpeg "C:\ffmpeg\bin\ffmpeg.exe"`.
+The mp4v option needs only OpenCV; H.264 offers explicit quality control. Both
+keep all frames at the original resolution and requested frame rate. H.264 uses
+yuv420p and requires even image dimensions. CRF 18 is a starting point for good
+quality; lower values such as 15 preserve more detail at the cost of larger files.
+Inspect fine whisker detail before adopting lossy compression for analysis.
+The original images remain unchanged. `veryfast` controls encoding speed and
+compression efficiency; it does not change playback speed. Start with two workers
+on an SSD; extra concurrency can slow down a busy or mechanical disk.
+
+`--skip-existing` checks decodable frame counts, dimensions, and frame rate before
+leaving each existing requested output unchanged. It does not check the source
+image contents or re-encode an old mp4v file to H.264. To encode all trials with a
+consistent new quality setting, add `--output-dir "path\session\training_videos_h264"`;
+use this folder when adding videos to DLC. No existing AVI files are deleted.
+
+The command rejects missing/duplicate frame numbers and inconsistent image sizes.
+Outputs are staged in a temporary directory and published only after all output
+frames decode correctly. Normal exceptions and Ctrl+C clean up staging files;
+a forcibly killed process may leave a staging directory. Non-image files and
+nonnumeric subfolders are ignored. Conversion waits for completion without the
+old machine-specific ffmpeg settings. Full decode validation adds a verification
+pass, including for skipped videos.
+
+To run the optional real-H.264 integration test, set `VIBRISSA_TEST_FFMPEG` to your
+FFmpeg executable before running the test suite.
 
 ## Next: run head tracking with DeepLabCut
 
