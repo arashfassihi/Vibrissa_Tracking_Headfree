@@ -4,7 +4,63 @@ Head-stabilized whisker tracking and touch analysis, based on William's
 [DeepWhiskerCuts](https://github.com/madwilliam/DeepWhiskerCuts), with updated
 video preprocessing and invertible coordinate mapping.
 
-## First: create videos if the session contains only trial images
+## Automatically select original images for new training labels
+
+```powershell
+python run_sample_training_frames.py --session-dir "path\session" --output-dir "path\ar70_training_samples" --name ar70_20261002_auto --count 80
+```
+
+The output directory must be new. The sampler scans numbered trial-image folders,
+spreads 16 candidates across each trial, and uses mean-centered image appearance
+and gradients to select diverse views. It prefers trial coverage before repeated
+trials, caps each trial at 4 selected images, and separates them by at least 50
+sorted image positions. It does not run DLC inference or depend on unreliable
+predicted head positions. The method is a visual diversity heuristic, not animal
+segmentation, verified pose coverage, or an optimal training set.
+
+Review `contact_sheet_*.jpg`. `selected_frames` contains full-resolution unmarked
+PNGs, preserving decoded source pixels, and `selected_manifest.csv` records each
+trial, original filename/frame number, sorted position, source path and selection
+score. Source frame number is not assumed to equal a zero-based video index.
+Candidates skip near-uniform exposures. Inadequate candidate counts or constraints
+may produce fewer requested frames; constraints are not silently relaxed.
+Increase `--candidates-per-trial` for finer coverage, `--count` for more labels, or
+adjust `--max-per-trial` and `--min-frame-gap` explicitly. A fixed-camera session is
+assumed. Review frames without a visible animal, blur, and occlusion manually.
+
+These are **UNLABELED candidate frames**. Model predictions are never written as
+human training labels. Manually annotate Nose, Snout, Leye and Reye consistently,
+then check labels and create a new training dataset/shuffle; nothing is trained
+or merged automatically by this sampler. Reserve entire trials for evaluation
+using `--exclude-trials 20 50 100` (example IDs); do not report accuracy solely on
+adjacent frames from the same training trials.
+
+To automatically install during selection, use the DLC environment's Python and
+add `--dlc-config "path\copied_project\config.yaml" --reference-video "path\0video.mp4"`.
+Close the DLC GUI first. The copied config must already point to its local project.
+This copies the selected PNGs into `labeled-data/<name>`, copies one real video as
+`videos/<name>.mp4`, backs up config and registers the folder using DLC's own
+config writer. No symlinks are created, old folders and labels are preserved, and
+an existing dataset name is refused. Scorer, bodyparts and iteration stay intact.
+
+The reference video only registers the mixed-trial labeling folder in DLC's
+video-based project structure. It does not describe the temporal sequence of
+the selected images: the manifest and unique trial/frame filenames are their
+source records. **Use Label Frames on this folder; do not run Extract Frames on
+the reference video.** Existing per-video folders remain available. Restart the
+GUI and load the copied project after installation. The installer requires the
+existing DLC environment, while selection alone needs only NumPy and OpenCV.
+
+For samples already generated, installation can be run from a Python prompt in
+the DLC environment:
+
+```python
+from run_sample_training_frames import install_for_labeling
+install_for_labeling(r"path\copied_project\config.yaml", "ar70_20261002_auto",
+    r"path\ar70_training_samples\selected_frames", r"path\0video.mp4")
+```
+
+## Create videos if the session contains only trial images
 
 For numbered trial folders containing numerically named PNG/BMP/JPEG/TIFF images:
 
